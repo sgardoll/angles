@@ -4,9 +4,10 @@ import { RedditPost } from '../types';
 
 interface PostPreviewProps {
   post: RedditPost;
+  contentId?: string;
 }
 
-export const PostPreview: React.FC<PostPreviewProps> = ({ post }) => {
+export const PostPreview: React.FC<PostPreviewProps> = ({ post, contentId }) => {
   return (
     <div className="bg-white text-slate-900 rounded-lg overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
       
@@ -31,10 +32,9 @@ export const PostPreview: React.FC<PostPreviewProps> = ({ post }) => {
         <h3 className="text-lg font-semibold leading-snug mb-3 text-slate-900">
           {post.title}
         </h3>
-        <div className="prose prose-sm prose-slate max-w-none text-slate-700">
-          <div className="line-clamp-[12] whitespace-pre-wrap font-sans">
-             {post.body}
-          </div>
+        {/* Render Markdown for preview and provide ID for rich text copying */}
+        <div id={contentId} className="prose prose-sm prose-slate max-w-none text-slate-700">
+           <ReactMarkdown>{post.body}</ReactMarkdown>
         </div>
       </div>
 
