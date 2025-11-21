@@ -23,3 +23,5 @@ export enum AppState {
   RESULTS = 'RESULTS',
   ERROR = 'ERROR',
 }
+
+export type AngleDirection = 'niche' | 'broad';

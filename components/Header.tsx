@@ -13,12 +13,6 @@ export const Header: React.FC = () => {
             <p className="text-xs text-slate-400 font-medium">Content Repurposing Engine</p>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-          <span className="hover:text-white cursor-pointer transition-colors">How it works</span>
-          <span className="hover:text-white cursor-pointer transition-colors">Templates</span>
-          <div className="h-4 w-px bg-slate-700"></div>
-          <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">Login</a>
-        </div>
       </div>
     </header>
   );

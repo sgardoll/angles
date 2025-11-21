@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AngleResponse, RedditPost } from "../types";
+import { AngleResponse, RedditPost, AngleDirection } from "../types";
 
 // Initialize Gemini Client
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -20,7 +20,8 @@ Return a JSON object containing an array of 'angles'.
 
 export const generateAngles = async (
   transcript: string, 
-  mediaFile?: File | null
+  mediaFile: File | null,
+  refineOptions?: { direction: AngleDirection, existingSubreddits: string[] }
 ): Promise<RedditPost[]> => {
   
   const parts: any[] = [];
@@ -31,10 +32,33 @@ export const generateAngles = async (
     parts.push(base64Data);
   }
 
-  // Add Transcript
-  parts.push({
-    text: `Here is the transcript of the video content:\n\n${transcript}\n\nBased on this, generate 3-4 distinct Reddit posts for different suitable subreddits.`
-  });
+  // Construct prompt based on whether this is a fresh analysis or a refinement
+  let prompt = `Here is the transcript of the video content:\n\n${transcript}\n\n`;
+
+  if (refineOptions) {
+    const { direction, existingSubreddits } = refineOptions;
+    const existingList = existingSubreddits.join(', ');
+    
+    prompt += `IMPORTANT: You have already generated posts for these subreddits: ${existingList}. DO NOT use these again. Find NEW communities.\n\n`;
+    
+    if (direction === 'niche') {
+        prompt += `TASK: The user wants "More Obvious" / "Contracted" angles.
+        - Focus on highly specific, technical, or exact-match communities.
+        - Drill down into specific tools, frameworks, languages, or sub-problems discussed.
+        - Example: If talking about generic coding, target r/FlutterDev, r/reactjs, or r/css instead of r/webdev.
+        - Generate 3 new distinct posts that are DEEP DIVES.`;
+    } else {
+        prompt += `TASK: The user wants "Less Obvious" / "Expanded" angles.
+        - Focus on broader, tangential, or "vibe-based" communities.
+        - Look for angles related to career advice, philosophy, mental health, future trends, or abstract concepts.
+        - Example: If talking about coding, target r/vibecoding, r/digitalnomad, r/ADHDProgrammers, or r/futurology.
+        - Generate 3 new distinct posts that are BIG PICTURE.`;
+    }
+  } else {
+    prompt += `Based on this, generate 3-4 distinct Reddit posts for different suitable subreddits.`;
+  }
+
+  parts.push({ text: prompt });
 
   try {
     const response = await ai.models.generateContent({

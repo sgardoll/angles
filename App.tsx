@@ -3,16 +3,22 @@ import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
 import { ResultsGrid } from './components/ResultsGrid';
 import { generateAngles } from './services/geminiService';
-import { RedditPost, AppState } from './types';
+import { RedditPost, AppState, AngleDirection } from './types';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [posts, setPosts] = useState<RedditPost[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  // Store source data to allow for refinement logic
+  const [sourceData, setSourceData] = useState<{transcript: string, file: File | null} | null>(null);
+  const [isRefining, setIsRefining] = useState(false);
 
   const handleAnalyze = async (transcript: string, file: File | null) => {
     setAppState(AppState.ANALYZING);
+    setSourceData({ transcript, file });
     setError(null);
+    
     try {
       const results = await generateAngles(transcript, file);
       setPosts(results);
@@ -24,9 +30,37 @@ const App: React.FC = () => {
     }
   };
 
+  const handleRefine = async (direction: AngleDirection) => {
+    if (!sourceData) return;
+    
+    setIsRefining(true);
+    try {
+        const existingSubreddits = posts.map(p => p.subreddit);
+        const newPosts = await generateAngles(sourceData.transcript, sourceData.file, {
+            direction,
+            existingSubreddits
+        });
+        
+        // Check for duplicates just in case, though prompt should handle it
+        const uniqueNewPosts = newPosts.filter(np => !existingSubreddits.includes(np.subreddit));
+        
+        if (uniqueNewPosts.length === 0) {
+            alert("Could not find new angles for this direction.");
+        } else {
+            setPosts(prev => [...prev, ...uniqueNewPosts]);
+        }
+    } catch (err) {
+        console.error(err);
+        setError("Failed to refine angles. Please try again.");
+    } finally {
+        setIsRefining(false);
+    }
+  };
+
   const handleReset = () => {
     setPosts([]);
     setAppState(AppState.IDLE);
+    setSourceData(null);
     setError(null);
   };
 
@@ -59,7 +93,12 @@ const App: React.FC = () => {
             )}
           </div>
         ) : (
-          <ResultsGrid posts={posts} onReset={handleReset} />
+          <ResultsGrid 
+            posts={posts} 
+            onReset={handleReset} 
+            onRefine={handleRefine}
+            isRefining={isRefining}
+          />
         )}
       </main>
     </div>
