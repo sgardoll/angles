@@ -1,0 +1,5 @@
+{
+  "name": "Angles",
+  "description": "A smart content repurposing tool that transforms video transcripts and visual context into tailored, high-value Reddit posts for specific communities.",
+  "requestFramePermissions": []
+}
