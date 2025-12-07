@@ -42,6 +42,20 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ posts, onReset, onRefi
     }
   };
 
+  const handlePostToReddit = (post: RedditPost) => {
+    // Reddit submit URL format
+    // Clean the subreddit name to ensure we don't duplicate the "r/" prefix
+    // The model typically returns "r/subreddit", but the URL structure is /r/[name]
+    const cleanSubreddit = post.subreddit.replace(/^r\//i, '').replace(/^\//, '');
+    const baseUrl = `https://www.reddit.com/r/${cleanSubreddit}/submit`;
+    const params = new URLSearchParams({
+      title: post.title,
+      text: post.body,
+      selftext: 'true' // Forces a text post
+    });
+    window.open(`${baseUrl}?${params.toString()}`, '_blank');
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto animate-fade-in-up">
       <div className="flex items-center justify-between mb-8">
@@ -83,23 +97,34 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({ posts, onReset, onRefi
               <PostPreview post={post} contentId={contentId} />
               
               {/* Action Buttons */}
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-3">
                  <button 
-                   onClick={() => handleCopyMarkdown(post)}
-                   className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-slate-700"
-                   title="Copy as Markdown (Best for Reddit Markdown Mode)"
+                   onClick={() => handlePostToReddit(post)}
+                   className="w-full bg-[#FF4500] hover:bg-[#ff5722] text-white py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-900/20 group transform hover:-translate-y-0.5"
+                   title="Open draft in Reddit"
                  >
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                   MD
+                   <svg className="w-5 h-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 1.249 0 .688-.561 1.249-1.249 1.249 0-.687-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+                   Draft on Reddit
                  </button>
-                 <button 
-                   onClick={() => handleCopyRichText(post, contentId)}
-                   className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
-                   title="Copy formatted text (Best for Fancy Pants Editor)"
-                 >
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-                   Copy Formatted
-                 </button>
+
+                 <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleCopyMarkdown(post)}
+                      className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 border border-slate-700"
+                      title="Copy as Markdown (Best for Reddit Markdown Mode)"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      Copy MD
+                    </button>
+                    <button 
+                      onClick={() => handleCopyRichText(post, contentId)}
+                      className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 shadow-sm"
+                      title="Copy formatted text (Best for Fancy Pants Editor)"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                      Copy Rich
+                    </button>
+                 </div>
               </div>
             </div>
           );
